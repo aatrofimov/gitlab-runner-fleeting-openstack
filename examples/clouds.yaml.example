@@ -1,0 +1,14 @@
+# OpenStack clouds.yaml. Copy to ~/.config/openstack/clouds.yaml or pass its
+# location via OS_CLIENT_CONFIG_FILE. The plugin selects the cloud named in
+# [runners.autoscaler.plugin_config.openstack] cloud.
+clouds:
+  selectel:
+    auth:
+      auth_url: https://cloud.api.selcloud.ru/identity/v3
+      username: <your-username>
+      password: <your-password>
+      project_name: <your-project-name>
+      user_domain_name: "Default"
+      project_domain_name: "Default"
+    region_name: ru-1
+    identity_api_version: "3"

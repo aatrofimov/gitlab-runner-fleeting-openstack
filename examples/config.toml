@@ -1,0 +1,51 @@
+# GitLab Runner manager config for the docker-autoscaler executor + the
+# OpenStack fleeting plugin. Register the runner and set a real token.
+
+concurrent = 5
+check_interval = 3
+
+[[runners]]
+  name = "openstack-autoscaler"
+  url = "https://gitlab.example.com"
+  token = "__GITLAB_RUNNER_TOKEN__"
+  executor = "docker-autoscaler"
+
+  [runners.docker]
+    image = "docker:27"
+
+  [runners.autoscaler]
+    plugin = "gitlab-runner-fleeting-openstack"
+    capacity_per_instance = 1
+    max_use_count = 0          # reuse instances until they are reclaimed
+    max_instances = 5
+
+    # Plugin-specific configuration (converted to JSON and handed to the
+    # plugin; the keys map to json tags in config/config.go).
+    [runners.autoscaler.plugin_config]
+      [runners.autoscaler.plugin_config.openstack]
+        cloud = "selectel"                 # clouds.yaml entry (or use OS_* env)
+        region = "ru-1"
+        compute_microversion = "2.72"      # required for Selectel preemptible servers
+        image_name = "gitlab-builder"      # latest Glance image with this name
+        # image_id = "<image-uuid>"        # ... or pin an explicit image UUID
+        flavor_id = "<flavor-uuid>"
+        keypair_name = "gitlab-builder"    # ephemeral ed25519 key is injected here
+        networks = ["<net-uuid>"]
+        security_groups = ["default"]
+        assign_floating_ip = true
+        floating_ip_network = "<external-net-name>"
+        preemptible_tag = "preemptible"
+        ssh_user = "debian"                # fallback when connector_config has no username
+      [runners.autoscaler.plugin_config.instance_group]
+        name = "builder"
+        idle_time = "1m"
+        max_instances = 5
+
+    # Connection details used to reach the Docker daemon over SSH.
+    [runners.autoscaler.connector_config]
+      username = "debian"
+      use_static_credentials = false
+      # For static credentials instead of the ephemeral keypair:
+      # use_static_credentials = true
+      # password = "..."
+      # key = "-----BEGIN PRIVATE KEY-----..."
