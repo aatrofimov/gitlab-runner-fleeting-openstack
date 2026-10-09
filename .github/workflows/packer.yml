@@ -1,0 +1,30 @@
+name: Packer
+
+# Validates the image template on PRs. Baking the image is opt-in: set the
+# OS_* secrets and trigger the workflow manually (or on a tag/schedule).
+on:
+  pull_request:
+    paths:
+      - 'packer/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-packer@v3
+        with:
+          version: latest
+
+      - name: packer init
+        working-directory: packer
+        run: packer init .
+
+      - name: packer validate
+        working-directory: packer
+        run: packer validate .
