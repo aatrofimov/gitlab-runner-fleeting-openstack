@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/trofimovaa/gitlab-runner-fleeting-openstack/config"
-	"github.com/trofimovaa/gitlab-runner-fleeting-openstack/internal/openstack"
+	"github.com/aatrofimov/gitlab-runner-fleeting-openstack/config"
+	"github.com/aatrofimov/gitlab-runner-fleeting-openstack/internal/openstack"
 
 	"gitlab.com/gitlab-org/fleeting/fleeting/provider"
 )

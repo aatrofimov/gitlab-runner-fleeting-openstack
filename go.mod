@@ -1,4 +1,4 @@
-module github.com/trofimovaa/gitlab-runner-fleeting-openstack
+module github.com/aatrofimov/gitlab-runner-fleeting-openstack
 
 go 1.26.0
 

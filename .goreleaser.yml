@@ -12,10 +12,10 @@ builds:
     binary: gitlab-runner-fleeting-openstack
     ldflags:
       - -s -w
-      - -X github.com/trofimovaa/gitlab-runner-fleeting-openstack/internal/plugin.VERSION={{.Version}}
-      - -X github.com/trofimovaa/gitlab-runner-fleeting-openstack/internal/plugin.REVISION={{.ShortCommit}}
-      - -X github.com/trofimovaa/gitlab-runner-fleeting-openstack/internal/plugin.REFERENCE={{.FullCommit}}
-      - -X github.com/trofimovaa/gitlab-runner-fleeting-openstack/internal/plugin.BUILT={{.Date}}
+      - -X github.com/aatrofimov/gitlab-runner-fleeting-openstack/internal/plugin.VERSION={{.Version}}
+      - -X github.com/aatrofimov/gitlab-runner-fleeting-openstack/internal/plugin.REVISION={{.ShortCommit}}
+      - -X github.com/aatrofimov/gitlab-runner-fleeting-openstack/internal/plugin.REFERENCE={{.FullCommit}}
+      - -X github.com/aatrofimov/gitlab-runner-fleeting-openstack/internal/plugin.BUILT={{.Date}}
 
 archives:
   - formats: [tar.gz]

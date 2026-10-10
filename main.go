@@ -5,7 +5,7 @@ package main
 import (
 	sdkplugin "gitlab.com/gitlab-org/fleeting/fleeting/plugin"
 
-	osplugin "github.com/trofimovaa/gitlab-runner-fleeting-openstack/internal/plugin"
+	osplugin "github.com/aatrofimov/gitlab-runner-fleeting-openstack/internal/plugin"
 )
 
 func main() {

@@ -95,7 +95,7 @@ See [docs/image-building.md](docs/image-building.md).
 
 ## Repository
 
-> The Go module path is currently `github.com/trofimovaa/gitlab-runner-fleeting-openstack`;
+> The Go module path is currently `github.com/aatrofimov/gitlab-runner-fleeting-openstack`;
 > update it (and `.goreleaser.yml` ldflags) to the actual repository URL before
 > publishing.
 

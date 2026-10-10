@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/trofimovaa/gitlab-runner-fleeting-openstack/internal/openstack"
+	"github.com/aatrofimov/gitlab-runner-fleeting-openstack/internal/openstack"
 
 	"gitlab.com/gitlab-org/fleeting/fleeting/provider"
 )
