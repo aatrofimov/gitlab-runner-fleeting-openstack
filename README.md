@@ -14,6 +14,74 @@ instantly.
 - The SSH key is injected **per instance** through an ephemeral ed25519 keypair
   (cloud-init), never baked into the image.
 
+## Quick start
+
+Step-by-step from a fresh clone to a running autoscaled runner.
+
+### 1. Bake the build-server image
+
+Needs OpenStack credentials (`clouds.yaml` or the `OS_*` env vars). Produces the
+`gitlab-builder` Glance image.
+
+```shell
+cd packer
+packer init .          # once: downloads the openstack plugin
+packer build \
+  -var source_image_id=<debian-genericcloud-uuid> \
+  -var flavor=<flavor> \
+  -var network_id=<net-uuid> \
+  -var security_group=<sg-name> \
+  -var external_net=<external-net> \
+  .
+```
+
+See [docs/image-building.md](docs/image-building.md).
+
+### 2. Build the plugin and copy it to the runner host
+
+```shell
+CGO_ENABLED=0 go build -o gitlab-runner-fleeting-openstack .
+scp gitlab-runner-fleeting-openstack user@runner-host:/usr/local/bin/
+```
+
+### 3. Register a runner and configure it
+
+On the runner host, install `gitlab-runner` (a separate binary from this
+plugin) and register to obtain a token:
+
+```shell
+gitlab-runner register --non-interactive \
+  --url https://gitlab.example.com \
+  --registration-token <PROJECT_OR_GROUP_TOKEN> \
+  --executor docker-autoscaler \
+  --description "openstack-autoscaler" \
+  --docker-image docker:27
+```
+
+Then edit `config.toml` and fill in the `[runners.autoscaler]` block — copy it
+from [examples/config.toml](examples/config.toml), set the real UUIDs/names and
+the path to the plugin binary in `plugin`.
+
+See [docs/install.md](docs/install.md) and
+[docs/configuration.md](docs/configuration.md).
+
+### 4. Run the manager
+
+```shell
+gitlab-runner run
+```
+
+### 5. Test
+
+Queue a job (a project with a `.gitlab-ci.yml` running `docker info`) and watch
+a preemptible server appear and disappear:
+
+```shell
+openstack server list --name builder
+```
+
+Concepts and the end-to-end flow: [docs/how-it-works.md](docs/how-it-works.md).
+
 ## Pinned versions
 
 | Component | Version |
@@ -88,6 +156,7 @@ See [docs/image-building.md](docs/image-building.md).
 
 ## Documentation
 
+- [How it works](docs/how-it-works.md)
 - [Installation](docs/install.md)
 - [Configuration](docs/configuration.md)
 - [Image building](docs/image-building.md)
