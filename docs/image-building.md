@@ -13,19 +13,19 @@ injected per instance via the OpenStack keypair (cloud-init).
 
 ## Build
 
+Copy the example variables, fill in real values, then build:
+
 ```shell
 cd packer
+cp example.pkrvars.hcl vars.pkrvars.hcl   # fill in real values
 packer init .
-packer build \
-  -var source_image_id=<debian-genericcloud-uuid> \
-  -var flavor=<flavor> \
-  -var network_id=<net-uuid> \
-  -var security_group=<sg-name> \
-  -var external_net=<external-net> \
-  .
+packer build -var-file=vars.pkrvars.hcl .
 ```
 
-`packer validate .` checks the template without building.
+`packer validate -var-file=vars.pkrvars.hcl .` checks the template before
+building. Note: the openstack plugin authenticates during `validate`, so it
+needs real credentials (`clouds.yaml` / `OS_*` env). CI therefore runs only
+`packer fmt -check` (syntax), not `validate`.
 
 ## Update workflow
 

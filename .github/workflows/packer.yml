@@ -1,7 +1,8 @@
 name: Packer
 
-# Validates the image template on PRs. Baking the image is opt-in: set the
-# OS_* secrets and trigger the workflow manually (or on a tag/schedule).
+# Checks the image template on PRs (syntax + plugin resolution). The openstack
+# plugin authenticates during `packer validate`, so the full validate/build needs
+# a live cloud and is run locally (see docs/image-building.md).
 on:
   pull_request:
     paths:
@@ -12,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +26,6 @@ jobs:
         working-directory: packer
         run: packer init .
 
-      - name: packer validate
+      - name: packer fmt check
         working-directory: packer
-        run: packer validate .
+        run: packer fmt -check .

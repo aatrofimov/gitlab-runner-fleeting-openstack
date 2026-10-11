@@ -25,14 +25,9 @@ Needs OpenStack credentials (`clouds.yaml` or the `OS_*` env vars). Produces the
 
 ```shell
 cd packer
-packer init .          # once: downloads the openstack plugin
-packer build \
-  -var source_image_id=<debian-genericcloud-uuid> \
-  -var flavor=<flavor> \
-  -var network_id=<net-uuid> \
-  -var security_group=<sg-name> \
-  -var external_net=<external-net> \
-  .
+cp example.pkrvars.hcl vars.pkrvars.hcl   # fill in real values
+packer init .                             # once: downloads the openstack plugin
+packer build -var-file=vars.pkrvars.hcl .
 ```
 
 See [docs/image-building.md](docs/image-building.md).
@@ -142,14 +137,9 @@ environment variables (`OS_AUTH_URL`, `OS_USERNAME`, `OS_PASSWORD`,
 
 ```shell
 cd packer
+cp example.pkrvars.hcl vars.pkrvars.hcl   # fill in real values
 packer init .
-packer build \
-  -var source_image_id=<debian-genericcloud-uuid> \
-  -var flavor=<flavor> \
-  -var network_id=<net-uuid> \
-  -var security_group=<sg-name> \
-  -var external_net=<external-net> \
-  .
+packer build -var-file=vars.pkrvars.hcl .
 ```
 
 See [docs/image-building.md](docs/image-building.md).
