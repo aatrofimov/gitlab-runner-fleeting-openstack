@@ -22,7 +22,9 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          # Pin a v2 release built with go >= 1.26: `latest` currently resolves
+          # to v1.64.8 (go1.24), which cannot lint a go 1.26 module.
+          version: v2.14.0
 
       - name: go vet
         run: go vet ./...
