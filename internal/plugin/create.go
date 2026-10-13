@@ -42,6 +42,8 @@ func (g *InstanceGroup) createOne(ctx context.Context) error {
 		Tags:              []string{g.OpenStack.PreemptibleTag},
 		AssignFloatingIP:  g.OpenStack.AssignFloatingIP,
 		FloatingIPNetwork: g.OpenStack.FloatingIPNetwork,
+		UserData:          buildCloudInitUserData(g.publicKey),
+		ConfigDrive:       true,
 	})
 	if err != nil {
 		return err

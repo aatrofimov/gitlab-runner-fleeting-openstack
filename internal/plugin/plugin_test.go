@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
@@ -148,6 +149,8 @@ func TestIncrease(t *testing.T) {
 	assert.Equal(t, []string{g.OpenStack.PreemptibleTag}, fake.createCalls[0].Tags)
 	assert.Equal(t, g.keypairName, fake.createCalls[0].KeypairName)
 	assert.Equal(t, "img-1", fake.createCalls[0].ImageID)
+	assert.True(t, fake.createCalls[0].ConfigDrive)
+	assert.Contains(t, string(fake.createCalls[0].UserData), g.publicKey)
 
 	g.mu.Lock()
 	assert.Len(t, g.instances, 3)
@@ -253,6 +256,15 @@ func TestShutdown(t *testing.T) {
 
 	require.NoError(t, g.Shutdown(context.Background()))
 	assert.ElementsMatch(t, []string{"srv-1"}, fake.deleteCalls)
+}
+
+func TestBuildCloudInitUserData(t *testing.T) {
+	ud := string(buildCloudInitUserData("ssh-ed25519 AAA test"))
+
+	assert.Contains(t, ud, "ssh-ed25519 AAA test")
+	assert.Contains(t, ud, "name: root")
+	assert.Equal(t, 2, strings.Count(ud, "ssh-ed25519 AAA test"),
+		"key must be injected into both the default user and root")
 }
 
 func TestNovaToProviderState(t *testing.T) {

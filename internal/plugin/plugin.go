@@ -11,6 +11,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"path"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-hclog"
@@ -59,6 +60,7 @@ type InstanceGroup struct {
 	client      openstackClient
 	imageID     string
 	keypairName string
+	publicKey   string
 	privateKey  []byte
 
 	mu        sync.Mutex
@@ -114,6 +116,7 @@ func (g *InstanceGroup) Init(ctx context.Context, log hclog.Logger, settings pro
 	if err := client.EnsureKeypair(ctx, g.keypairName, publicSSH); err != nil {
 		return provider.ProviderInfo{}, fmt.Errorf("ensuring keypair: %w", err)
 	}
+	g.publicKey = strings.TrimSpace(publicSSH)
 	g.privateKey = privatePEM
 
 	id := path.Join("openstack", cfg.OpenStack.Region, cfg.InstanceGroup.Name)
@@ -169,4 +172,19 @@ func generateKeypair() (privatePEM []byte, publicSSH string, err error) {
 	publicSSH = string(ssh.MarshalAuthorizedKey(sshPub))
 
 	return privatePEM, publicSSH, nil
+}
+
+// buildCloudInitUserData renders the cloud-config user data that injects the
+// ephemeral public key into both the default user and root. Selectel images
+// ignore the Nova keypair mechanism, so the key must be delivered here.
+func buildCloudInitUserData(publicKey string) []byte {
+	key := strings.TrimSpace(publicKey)
+	return []byte(fmt.Sprintf(`#cloud-config
+ssh_authorized_keys:
+  - %s
+users:
+  - name: root
+    ssh_authorized_keys:
+      - %s
+`, key, key))
 }

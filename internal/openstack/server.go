@@ -39,6 +39,8 @@ type CreateOpts struct {
 	Tags              []string
 	AssignFloatingIP  bool
 	FloatingIPNetwork string
+	UserData          []byte
+	ConfigDrive       bool
 }
 
 const (
@@ -58,6 +60,11 @@ func (c *Client) CreateServer(ctx context.Context, opts CreateOpts) (*Server, er
 		SecurityGroups:   opts.SecurityGroups,
 		AvailabilityZone: opts.AvailabilityZone,
 		Tags:             opts.Tags,
+		UserData:         opts.UserData,
+	}
+	if opts.ConfigDrive {
+		configDrive := true
+		createOpts.ConfigDrive = &configDrive
 	}
 
 	if len(opts.Networks) > 0 {

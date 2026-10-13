@@ -2,6 +2,7 @@ package openstack
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -98,6 +99,54 @@ func TestGetServer(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "srv-1", s.ID)
 	assert.Equal(t, "ACTIVE", s.Status)
+}
+
+func TestCreateServerInjectsUserData(t *testing.T) {
+	c, fs := newTestClient()
+	defer fs.Teardown()
+
+	var createBody map[string]any
+	fs.Mux.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			_ = json.NewDecoder(r.Body).Decode(&createBody)
+			writeJSON(w, map[string]any{
+				"server": map[string]any{"id": "srv-1", "name": "builder-abc", "status": "BUILD"},
+			})
+			return
+		}
+		writeJSON(w, map[string]any{"servers": []any{}})
+	})
+	fs.Mux.HandleFunc("/servers/srv-1", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, map[string]any{
+			"server": map[string]any{
+				"id":     "srv-1",
+				"name":   "builder-abc",
+				"status": "ACTIVE",
+				"addresses": map[string]any{
+					"net-a": []any{map[string]any{"version": 4, "addr": "10.0.0.5"}},
+				},
+			},
+		})
+	})
+
+	srv, err := c.CreateServer(context.Background(), CreateOpts{
+		Name:        "builder-abc",
+		ImageID:     "img-1",
+		FlavorID:    "flavor-1",
+		UserData:    []byte("#cloud-config\nssh_authorized_keys:\n  - ssh-ed25519 AAA\n"),
+		ConfigDrive: true,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "srv-1", srv.ID)
+	assert.Equal(t, "10.0.0.5", srv.Address)
+
+	server := createBody["server"].(map[string]any)
+	configDrive, _ := server["config_drive"].(bool)
+	assert.True(t, configDrive)
+
+	decoded, err := base64.StdEncoding.DecodeString(server["user_data"].(string))
+	require.NoError(t, err)
+	assert.Contains(t, string(decoded), "ssh-ed25519 AAA")
 }
 
 func TestFirstFixedAddress(t *testing.T) {
