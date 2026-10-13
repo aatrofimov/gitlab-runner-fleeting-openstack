@@ -12,10 +12,15 @@ if ! openstack keypair show packer-builder >/dev/null 2>&1; then
   openstack keypair create packer-builder --public-key "$PUB" >/dev/null
 fi
 
+PUBKEY="$(cat "$PUB")"
 cat > "$DIR/user-data.yaml" <<EOF
 #cloud-config
 ssh_authorized_keys:
-  - $(cat "$PUB")
+  - $PUBKEY
+users:
+  - name: root
+    ssh_authorized_keys:
+      - $PUBKEY
 EOF
 
 echo "OK: keypair 'packer-builder' + $DIR/user-data.yaml"
