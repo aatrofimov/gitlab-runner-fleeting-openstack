@@ -11,6 +11,7 @@ source "openstack" "builder" {
   image_name          = var.image_name
   source_image        = var.source_image_id
   flavor              = var.flavor
+  availability_zone   = var.availability_zone
   ssh_username        = var.ssh_username
   networks            = [var.network_id]
   security_groups     = [var.security_group]

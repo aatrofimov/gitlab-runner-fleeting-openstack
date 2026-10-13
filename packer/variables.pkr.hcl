@@ -24,6 +24,12 @@ variable "external_net" {
   description = "External network used to allocate the provisioning floating IP"
 }
 
+variable "availability_zone" {
+  type        = string
+  default     = ""
+  description = "Availability zone of the private network (empty = cloud default)"
+}
+
 variable "image_name" {
   type        = string
   default     = "gitlab-builder"
