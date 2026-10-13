@@ -1,5 +1,10 @@
 # gitlab-runner-fleeting-openstack
 
+[![CI](https://github.com/aatrofimov/gitlab-runner-fleeting-openstack/actions/workflows/ci.yml/badge.svg)](https://github.com/aatrofimov/gitlab-runner-fleeting-openstack/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aatrofimov/gitlab-runner-fleeting-openstack)](https://goreportcard.com/report/github.com/aatrofimov/gitlab-runner-fleeting-openstack)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/aatrofimov/gitlab-runner-fleeting-openstack)](https://github.com/aatrofimov/gitlab-runner-fleeting-openstack)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A [fleeting](https://gitlab.com/gitlab-org/fleeting/fleeting) plugin for
 OpenStack that lets [GitLab Runner](https://docs.gitlab.com/runner/)
 autoscale ephemeral (preemptible) build servers with the `docker-autoscaler`
