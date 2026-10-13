@@ -30,6 +30,24 @@ variable "availability_zone" {
   description = "Availability zone of the private network (empty = cloud default)"
 }
 
+variable "volume_size" {
+  type        = number
+  default     = 40
+  description = "Size (GB) of the root Cinder volume for volume-backed boot"
+}
+
+variable "volume_type" {
+  type        = string
+  default     = ""
+  description = "Cinder volume type; required for volume-backed boot"
+}
+
+variable "ssh_private_key_file" {
+  type        = string
+  default     = ""
+  description = "Path to the private key matching the 'packer-builder' keypair"
+}
+
 variable "image_name" {
   type        = string
   default     = "gitlab-builder"

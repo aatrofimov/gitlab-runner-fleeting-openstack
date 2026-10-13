@@ -18,6 +18,7 @@ dist/
 packer/artifacts/
 packer/.cache/
 packer/vars.pkrvars.hcl
+packer/user-data.yaml
 
 # Secrets / local config (never commit)
 clouds.yaml
