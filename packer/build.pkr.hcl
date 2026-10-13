@@ -18,9 +18,7 @@ source "openstack" "builder" {
   floating_ip_network = var.external_net
   image_visibility    = "private"
 
-  use_blockstorage_volume = true
-  volume_size             = var.volume_size
-  volume_type             = var.volume_type
+  use_blockstorage_volume = false
 
   ssh_keypair_name     = "packer-builder"
   ssh_private_key_file = var.ssh_private_key_file
