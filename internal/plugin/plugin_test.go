@@ -2,9 +2,11 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/assert"
@@ -155,6 +157,91 @@ func TestIncrease(t *testing.T) {
 	g.mu.Lock()
 	assert.Len(t, g.instances, 3)
 	g.mu.Unlock()
+}
+
+func TestIncreaseSuccessFirstAttempt(t *testing.T) {
+	fake := newFakeClient()
+	g := newTestGroup(t, fake, validConfig())
+
+	n, err := g.Increase(context.Background(), 1)
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+	assert.Len(t, fake.createCalls, 1)
+}
+
+func TestIncreaseRetriesUntilSuccess(t *testing.T) {
+	fake := newFakeClient()
+	cfg := validConfig()
+	cfg.OpenStack.MaxCreateAttempts = 3
+	cfg.OpenStack.CreateRetryBackoff = config.Duration(time.Millisecond)
+	g := newTestGroup(t, fake, cfg)
+
+	attempts := 0
+	fake.createFn = func(_ context.Context, opts openstack.CreateOpts) (*openstack.Server, error) {
+		attempts++
+		if attempts < 3 {
+			return nil, errors.New(`server srv-x entered "ERROR" state`)
+		}
+		return &openstack.Server{ID: "srv-ok", Name: opts.Name, Status: "ACTIVE", Address: "10.0.0.9"}, nil
+	}
+
+	n, err := g.Increase(context.Background(), 1)
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+	assert.Equal(t, 3, attempts)
+	assert.Len(t, fake.createCalls, 3)
+}
+
+func TestIncreaseExhaustsAttempts(t *testing.T) {
+	fake := newFakeClient()
+	cfg := validConfig()
+	cfg.OpenStack.MaxCreateAttempts = 4
+	cfg.OpenStack.CreateRetryBackoff = config.Duration(time.Millisecond)
+	g := newTestGroup(t, fake, cfg)
+
+	fake.createFn = func(_ context.Context, _ openstack.CreateOpts) (*openstack.Server, error) {
+		return nil, errors.New(`server srv-x entered "ERROR" state`)
+	}
+
+	n, err := g.Increase(context.Background(), 1)
+	require.Error(t, err)
+	assert.Equal(t, 0, n)
+	assert.Len(t, fake.createCalls, 4)
+}
+
+func TestIncreaseContextCancellationInterruptsBackoff(t *testing.T) {
+	fake := newFakeClient()
+	cfg := validConfig()
+	cfg.OpenStack.MaxCreateAttempts = 5
+	cfg.OpenStack.CreateRetryBackoff = config.Duration(time.Hour)
+	g := newTestGroup(t, fake, cfg)
+
+	attempted := make(chan struct{}, 1)
+	fake.createFn = func(_ context.Context, _ openstack.CreateOpts) (*openstack.Server, error) {
+		attempted <- struct{}{}
+		return nil, errors.New(`server srv-x entered "ERROR" state`)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	var n int
+	var err error
+	go func() {
+		n, err = g.Increase(ctx, 1)
+		close(done)
+	}()
+
+	<-attempted
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Increase did not return after context cancellation")
+	}
+
+	require.ErrorIs(t, err, context.Canceled)
+	assert.Equal(t, 0, n)
 }
 
 func TestDecrease(t *testing.T) {

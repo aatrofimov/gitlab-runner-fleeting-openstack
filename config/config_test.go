@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,6 +22,8 @@ func TestConfigDefault(t *testing.T) {
 	assert.Equal(t, "debian", cfg.OpenStack.SSHUser)
 	assert.Equal(t, "builder", cfg.InstanceGroup.Name)
 	assert.Equal(t, defaultMaxInstances, cfg.InstanceGroup.MaxInstances)
+	assert.Equal(t, defaultMaxCreateAttempts, cfg.OpenStack.MaxCreateAttempts)
+	assert.Equal(t, Duration(defaultCreateRetryBackoff), cfg.OpenStack.CreateRetryBackoff)
 }
 
 func TestConfigDefaultDoesNotOverrideExplicitValues(t *testing.T) {
@@ -32,6 +35,8 @@ func TestConfigDefaultDoesNotOverrideExplicitValues(t *testing.T) {
 			PreemptibleTag:      "spot",
 			SSHUser:             "ubuntu",
 			ImageName:           "custom",
+			MaxCreateAttempts:   3,
+			CreateRetryBackoff:  Duration(2 * time.Second),
 		},
 		InstanceGroup: Group{
 			Name:         "workers",
@@ -45,6 +50,8 @@ func TestConfigDefaultDoesNotOverrideExplicitValues(t *testing.T) {
 	assert.Equal(t, "custom", cfg.OpenStack.ImageName)
 	assert.Equal(t, "workers", cfg.InstanceGroup.Name)
 	assert.Equal(t, 12, cfg.InstanceGroup.MaxInstances)
+	assert.Equal(t, 3, cfg.OpenStack.MaxCreateAttempts)
+	assert.Equal(t, Duration(2*time.Second), cfg.OpenStack.CreateRetryBackoff)
 }
 
 func TestConfigValidate(t *testing.T) {
@@ -86,6 +93,24 @@ func TestConfigValidate(t *testing.T) {
 		cfg := valid()
 		cfg.OpenStack.AssignFloatingIP = true
 		require.ErrorContains(t, cfg.Validate(), "floating_ip_network")
+	})
+
+	t.Run("max create attempts too low", func(t *testing.T) {
+		cfg := valid()
+		cfg.OpenStack.MaxCreateAttempts = 0
+		require.ErrorContains(t, cfg.Validate(), "max_create_attempts")
+	})
+
+	t.Run("max create attempts too high", func(t *testing.T) {
+		cfg := valid()
+		cfg.OpenStack.MaxCreateAttempts = 11
+		require.ErrorContains(t, cfg.Validate(), "max_create_attempts")
+	})
+
+	t.Run("negative create retry backoff", func(t *testing.T) {
+		cfg := valid()
+		cfg.OpenStack.CreateRetryBackoff = Duration(-time.Second)
+		require.ErrorContains(t, cfg.Validate(), "create_retry_backoff")
 	})
 }
 

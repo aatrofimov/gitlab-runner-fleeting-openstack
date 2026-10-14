@@ -25,6 +25,8 @@ handing it to the plugin. Every key maps to a `json:` tag in
 | `floating_ip_network` | string | `""` | External network (name or ID) for floating IPs. Required when `assign_floating_ip` is true. |
 | `preemptible_tag` | string | `"preemptible"` | Nova server tag that marks a server preemptible. |
 | `ssh_user` | string | `"debian"` | SSH user fallback when the connector config has no `username`. |
+| `max_create_attempts` | int | `5` | Maximum server-create attempts per instance when a server enters the OpenStack `ERROR` state. |
+| `create_retry_backoff` | duration string | `"10s"` | Initial delay between create attempts; doubles on each retry, capped at `60s`. |
 
 ## `[runners.autoscaler.plugin_config.instance_group]`
 

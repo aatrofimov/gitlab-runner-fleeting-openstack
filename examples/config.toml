@@ -36,6 +36,8 @@ check_interval = 3
         floating_ip_network = "<external-net-name>"
         preemptible_tag = "preemptible"
         ssh_user = "debian"                # fallback when connector_config has no username
+        max_create_attempts = 5            # retry a failed (ERROR) create up to this many times
+        create_retry_backoff = "10s"       # initial backoff; doubles per retry, capped at 60s
       [runners.autoscaler.plugin_config.instance_group]
         name = "builder"
         idle_time = "1m"

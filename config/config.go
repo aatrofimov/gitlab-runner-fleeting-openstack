@@ -22,6 +22,8 @@ const (
 	defaultSSHUser             = "debian"
 	defaultInstanceGroupName   = "builder"
 	defaultMaxInstances        = 5
+	defaultMaxCreateAttempts   = 5
+	defaultCreateRetryBackoff  = 10 * time.Second
 )
 
 // Config is the top-level plugin configuration.
@@ -83,6 +85,15 @@ type OpenStack struct {
 	// SSHUser is the default SSH user, used only when the runner's
 	// connector_config does not specify a username.
 	SSHUser string `json:"ssh_user"`
+
+	// MaxCreateAttempts caps the number of server-create attempts per
+	// instance within a single Increase call when a server enters the
+	// OpenStack ERROR state.
+	MaxCreateAttempts int `json:"max_create_attempts"`
+
+	// CreateRetryBackoff is the initial delay between create attempts. It
+	// grows exponentially (doubling) up to 60s on each retry.
+	CreateRetryBackoff Duration `json:"create_retry_backoff"`
 }
 
 // Group holds the instance-group-scoped settings.
@@ -149,6 +160,12 @@ func (c Config) Default() Config {
 	if c.InstanceGroup.MaxInstances <= 0 {
 		c.InstanceGroup.MaxInstances = defaultMaxInstances
 	}
+	if c.OpenStack.MaxCreateAttempts == 0 {
+		c.OpenStack.MaxCreateAttempts = defaultMaxCreateAttempts
+	}
+	if c.OpenStack.CreateRetryBackoff == 0 {
+		c.OpenStack.CreateRetryBackoff = Duration(defaultCreateRetryBackoff)
+	}
 	return c
 }
 
@@ -165,6 +182,12 @@ func (c Config) Validate() error {
 	}
 	if c.InstanceGroup.Name == "" {
 		return fmt.Errorf("instance_group.name is required")
+	}
+	if c.OpenStack.MaxCreateAttempts < 1 || c.OpenStack.MaxCreateAttempts > 10 {
+		return fmt.Errorf("openstack.max_create_attempts must be between 1 and 10")
+	}
+	if c.OpenStack.CreateRetryBackoff.Duration() < 0 {
+		return fmt.Errorf("openstack.create_retry_backoff must not be negative")
 	}
 	return nil
 }
