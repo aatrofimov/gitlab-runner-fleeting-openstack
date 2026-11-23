@@ -16,7 +16,9 @@ else
 fi
 
 $SUDO apt-get update -y
-$SUDO apt-get install -y docker.io
+# On Debian, docker.io ships only the daemon (dockerd); the CLI (/usr/bin/docker)
+# is a separate docker-cli package. Install both so 'docker' is on PATH.
+$SUDO apt-get install -y docker.io docker-cli
 
 $SUDO systemctl enable docker
 $SUDO systemctl start docker
