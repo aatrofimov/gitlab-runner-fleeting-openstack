@@ -36,4 +36,8 @@ build {
   provisioner "shell" {
     script = "scripts/configure-ssh.sh"
   }
+
+  provisioner "shell" {
+    script = "scripts/verify-docker.sh"
+  }
 }

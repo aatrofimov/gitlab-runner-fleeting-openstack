@@ -9,3 +9,4 @@ security_group       = "default"                              # SG that allows S
 external_net         = "<external-net>"                       # external network for the FIP
 availability_zone    = ""                                     # AZ of the private network (optional)
 ssh_private_key_file = ""                                     # path to private key of 'packer-builder'
+ssh_username         = "root"                                 # Selectel Debian is root-centric (no 'debian' user)

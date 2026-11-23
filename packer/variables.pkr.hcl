@@ -44,6 +44,6 @@ variable "image_name" {
 
 variable "ssh_username" {
   type        = string
-  default     = "debian"
-  description = "SSH user of the source image"
+  default     = "root"
+  description = "SSH user of the source image (Selectel Debian is root-centric)"
 }

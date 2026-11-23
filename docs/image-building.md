@@ -47,8 +47,10 @@ needs real credentials (`clouds.yaml` / `OS_*` env). CI therefore runs only
   id `8051`). In `ru-7b` the `standard` (SL) flavors have no available hosts
   (`No valid host was found`), and volume-backed boot is unnecessary — HFL2
   boots from its local disk.
-- Set `ssh_username = "root"` in `vars.pkrvars.hcl`: the Selectel Debian image
-  is root-centric (`set-root-pw.service`); `debian` is not the default user.
+- The build provisions as `root` (the default `ssh_username` is `"root"` and
+  `example.pkrvars.hcl` sets it explicitly): the Selectel Debian image is
+  root-centric (`set-root-pw.service`) and does **not** ship `sudo`, so the
+  provisioning scripts use `sudo` only when not already running as root.
 
 ## Update workflow
 
@@ -59,13 +61,20 @@ so the next scale-up automatically uses the new image.
 
 ## Check the baked image
 
+The build itself refuses to register a "dockerless" image: the final
+`scripts/verify-docker.sh` provisioner runs `docker version`, `docker info` and
+checks the CLI at `/usr/bin/docker`, failing the build if any of them do not
+pass.
+
 ```shell
 openstack image list --name gitlab-builder
 openstack image show <image-uuid>
 ```
 
-Boot a test server from it and confirm Docker is ready:
+Boot a test server from it and confirm Docker is ready exactly like the runner
+does (non-interactive SSH as root):
 
 ```shell
 ssh root@<ip> 'docker version'
+ssh root@<ip> 'docker info'
 ```
